@@ -27,6 +27,7 @@ function safeCredentialEqual(input: string, expected: string) {
   const expectedBuffer = Buffer.from(expected);
   return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
+function escapeHtml(value: string | undefined) { return (value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
 
 export const appRouter = router({
   system: systemRouter,
@@ -69,7 +70,13 @@ export const appRouter = router({
     }),
     talent: publicProcedure.input(z.object({ name: z.string().trim().min(2).max(180), email: z.string().email().max(320), specialty: z.string().trim().min(2).max(180), department: z.string().max(120).optional(), portfolio: z.string().url().or(z.literal("")).optional(), socialLinks: z.string().max(1000).optional(), biography: z.string().max(5000).optional(), experience: z.string().max(5000).optional(), message: z.string().max(5000).optional() })).mutation(async ({ input }) => {
       const db = await getDb(); if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "The talent service is temporarily unavailable." });
-      await db.insert(talentSubmissions).values(input); return { success: true };
+      await db.insert(talentSubmissions).values(input);
+      let emailStatus = "not_configured";
+      if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL && process.env.ADMIN_NOTIFICATION_EMAIL) {
+        const result = await sendResendEmail({ to: process.env.ADMIN_NOTIFICATION_EMAIL, subject: `Talent application: ${input.name}`, html: `<p><strong>${escapeHtml(input.name)}</strong> submitted a talent application.</p><p>Email: ${escapeHtml(input.email)}</p><p>Specialty: ${escapeHtml(input.specialty)}</p><p>Department: ${escapeHtml(input.department)}</p><p>${escapeHtml(input.message)}</p>` });
+        emailStatus = result.sent ? "sent" : "provider_error";
+      }
+      return { success: true, emailStatus };
     }),
   }),
   media: router({ cloudinarySignature: adminProcedure.query(() => createCloudinarySignature()) }),
