@@ -1,4 +1,5 @@
 import { and, desc, eq, or, sql } from "drizzle-orm";
+import { timingSafeEqual } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -8,6 +9,8 @@ import { getDb, listPublishedContent, recordAudit, searchPublishedContent, users
 import { sendResendEmail, createCloudinarySignature } from "./integrations";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { systemRouter } from "./_core/systemRouter";
+import { ENV } from "./_core/env";
+import { sdk } from "./_core/sdk";
 
 const kindSchema = z.enum(contentKinds);
 const statusSchema = z.enum(["draft", "submitted", "in_review", "approved", "rejected", "scheduled", "published", "archived"]);
@@ -19,11 +22,27 @@ const superAdminProcedure = adminProcedure.use(({ ctx, next }) => {
   if (!ctx.user || !["admin", "super_admin"].includes(ctx.user.role)) throw new TRPCError({ code: "FORBIDDEN", message: "Super Admin access is required." });
   return next({ ctx });
 });
+function safeCredentialEqual(input: string, expected: string) {
+  const actualBuffer = Buffer.from(input);
+  const expectedBuffer = Buffer.from(expected);
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
+}
 
 export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(({ ctx }) => ctx.user),
+    loginWithCredentials: publicProcedure.input(z.object({ username: z.string().trim().min(1).max(120), password: z.string().min(1).max(200) })).mutation(async ({ ctx, input }) => {
+      if (!ENV.adminLoginUsername || !ENV.adminLoginPassword) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Credential login is not configured on this deployment." });
+      if (!safeCredentialEqual(input.username, ENV.adminLoginUsername) || !safeCredentialEqual(input.password, ENV.adminLoginPassword)) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid username or password." });
+      const openId = `credentials:${ENV.adminLoginUsername}`;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "The account database is unavailable." });
+      await db.insert(users).values({ openId, name: "Caleb Admin", loginMethod: "credentials", role: "admin", lastSignedIn: new Date() }).onDuplicateKeyUpdate({ set: { name: "Caleb Admin", loginMethod: "credentials", role: "admin", lastSignedIn: new Date() } });
+      const token = await sdk.signSession({ openId, appId: ENV.appId || "awesome-studios", name: "Caleb Admin" });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: 1000 * 60 * 60 * 24 * 30 });
+      return { success: true } as const;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => { ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: -1 }); return { success: true } as const; }),
   }),
   content: router({

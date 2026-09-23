@@ -11,6 +11,7 @@ Awesome Studios is a full-stack entertainment studio platform for an African cre
 - Original ambient instrumental sound bed with user-initiated playback to respect browser autoplay rules.
 - Database-backed CMS content records and workflow statuses: draft, submitted, in review, approved, rejected, scheduled, published, and archived.
 - Protected admin console pages for Overview, Content, Inbox, Team, and Audit Log.
+- Admin access through either Manus OAuth or server-side username/password credentials; the password is never bundled into the client.
 - Server-side role enforcement for regular users, Department Admins, and Super Admins.
 - Private contact and talent submissions stored server-side, with Resend notification delivery configured for `calebabugh7@gmail.com`.
 - Cloudinary signed-upload signature endpoint with provider secrets kept server-side.
@@ -20,13 +21,13 @@ Awesome Studios is a full-stack entertainment studio platform for an African cre
 ## Development
 
 ```bash
-pnpm install
-pnpm check
-pnpm test
-pnpm build
+npm install
+npm run check
+npm test
+npm run build
 ```
 
-The managed WebDev runtime supplies the application database and Manus session runtime. Provider secrets are stored outside the repository. Read `DEPLOYMENT.md` for Resend sender verification, Vercel configuration, admin authorization, audio asset handling, and the team-data note.
+The managed WebDev runtime supplies the application database and Manus session runtime. Provider secrets are stored outside the repository. Read `LOCAL_SETUP.md` for Windows/npm instructions and `DEPLOYMENT.md` for Resend sender verification, Vercel configuration, admin authorization, audio asset handling, and the team-data note.
 
 ## Production note
 

@@ -2,7 +2,7 @@
 
 ## Current verified state
 
-The application builds with `pnpm build`, passes `pnpm check`, and passes the complete Vitest suite. The managed preview contains the public site, complete navigation, theme switching, ambient sound control, CMS archive routes, protected admin console, inbox, team profile manager, and audit log.
+The application builds with `npm run build`, passes `npm run check`, and passes the complete Vitest suite. The managed preview contains the public site, complete navigation, theme switching, ambient sound control, CMS archive routes, protected admin console, inbox, team profile manager, and audit log.
 
 ## Resend
 
@@ -15,7 +15,7 @@ The Resend key was validated against the send endpoint without dispatching an em
 
 ## Vercel
 
-The supplied URL `https://awesome-studios-wz98.vercel.app/` currently returns Vercel `404 NOT_FOUND`, which means it is not serving this repository/build. It needs to be connected to the Awesome Studios repository and configured with the project root and build settings. Use the project root as the repository root, install with `pnpm install`, build with `pnpm build`, and serve the generated Node entry with `pnpm start`. Add the server-side secrets from the WebDev project to Vercel's Production environment; never commit them to this ZIP.
+The supplied URL `https://awesome-studios-wz98.vercel.app/` currently returns Vercel `404 NOT_FOUND`, which means it is not serving this repository/build. It needs to be connected to the Awesome Studios repository and configured with the project root and build settings. Use the project root as the repository root, install with `npm install`, build with `npm run build`, and serve the generated Node entry with `npm start`. Add the server-side secrets from the WebDev project to Vercel's Production environment; never commit them to this ZIP.
 
 The managed WebDev runtime is the verified deployment target for this build because it supplies the application database, OAuth session runtime, and environment bindings. If deploying to Vercel, the production database URL, JWT/session secret, OAuth values, Resend values, storage values, and public site URL must all be supplied explicitly.
 
@@ -25,7 +25,9 @@ The original ambient bed is uploaded to managed WebDev storage at `/manus-storag
 
 ## Admin access
 
-`/admin` is protected by the existing Manus OAuth session and server-side role checks. The owner account is promoted during user upsert. To add other administrators, update the `users.role` value to `admin`, `department_admin`, or `super_admin` in the database. The admin console has Overview, Content, Inbox, Team, and Audit Log pages.
+`/admin` supports both Manus OAuth and a server-side credentials login. Configure `ADMIN_LOGIN_USERNAME` and `ADMIN_LOGIN_PASSWORD` in the deployment environment; the current managed deployment has the requested credential values configured server-side. Change the password before broad production use. Credential login creates the same signed session cookie and an `admin` user record, so all server-side role checks remain active. To add other administrators, update the `users.role` value to `admin`, `department_admin`, or `super_admin` in the database. The admin console has Overview, Content, Inbox, Team, and Audit Log pages.
+
+The managed database was repaired to include the `users.department` column required by the current schema and OAuth sync flow. New deployments should apply the current schema migrations before starting the server.
 
 ## Team data
 
@@ -34,8 +36,10 @@ The supplied 25-person roster is loaded into `team_members` as published records
 ## Verification commands
 
 ```bash
-pnpm install
-pnpm check
-pnpm test
-pnpm build
+npm install
+npm run check
+npm test
+npm run build
 ```
+
+Windows-specific local instructions are in `LOCAL_SETUP.md`.
