@@ -67,6 +67,20 @@ export const appRouter = router({
       const conditions = [input?.status ? eq(contentItems.status, input.status) : undefined, input?.kind ? eq(contentItems.kind, input.kind) : undefined, ctx.user.role === "department_admin" && ctx.user.department ? eq(contentItems.department, ctx.user.department) : undefined].filter(Boolean) as never[];
       return db.select().from(contentItems).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(contentItems.updatedAt));
     }),
+    inbox: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return { contacts: [], talent: [] };
+      const [contacts, talent] = await Promise.all([
+        db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt)).limit(100),
+        db.select().from(talentSubmissions).orderBy(desc(talentSubmissions.createdAt)).limit(100),
+      ]);
+      return { contacts, talent };
+    }),
+    teamMembers: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select().from(teamMembers).orderBy(teamMembers.displayOrder, teamMembers.name);
+    }),
     createContent: adminProcedure.input(z.object({ kind: kindSchema, title: z.string().trim().min(2).max(220), slug: z.string().trim().min(2).max(180).regex(/^[a-z0-9-]+$/), eyebrow: z.string().max(120).optional(), description: z.string().max(5000).optional(), body: z.string().max(20000).optional(), department: z.string().max(120).optional(), imageUrl: z.string().url().or(z.literal("")).optional() })).mutation(async ({ ctx, input }) => {
       if (ctx.user.role === "department_admin" && input.department && input.department !== ctx.user.department) throw new TRPCError({ code: "FORBIDDEN", message: "You cannot create content outside your department." });
       const db = await getDb(); if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE" });
