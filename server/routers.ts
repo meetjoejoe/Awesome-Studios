@@ -95,9 +95,18 @@ export const appRouter = router({
       await db.update(contentItems).set({ status: input.status, publishedAt: input.status === "published" ? new Date() : item.publishedAt }).where(eq(contentItems.id, input.id));
       await recordAudit(ctx.user.id, `content.${input.status}`, "content", input.id); return { success: true };
     }),
-    team: superAdminProcedure.input(z.object({ name: z.string().trim().min(2).max(180), role: z.string().max(160).optional(), department: z.string().max(120).optional(), specialty: z.string().max(180).optional(), biography: z.string().max(5000).optional(), published: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
+    team: superAdminProcedure.input(z.object({ name: z.string().trim().min(2).max(180), role: z.string().max(160).optional(), department: z.string().max(120).optional(), specialty: z.string().max(180).optional(), biography: z.string().max(5000).optional(), photoUrl: z.string().url().or(z.literal("")).optional(), displayOrder: z.number().int().min(0).default(0), published: z.boolean().default(false) })).mutation(async ({ ctx, input }) => {
       const db = await getDb(); if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE" });
       const result = await db.insert(teamMembers).values({ ...input, published: input.published ? 1 : 0 }); await recordAudit(ctx.user.id, "team.created", "team_member", Number((result as unknown as { insertId?: number }).insertId ?? 0)); return { success: true };
+    }),
+    updateTeam: superAdminProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(180), role: z.string().max(160).optional(), department: z.string().max(120).optional(), specialty: z.string().max(180).optional(), biography: z.string().max(5000).optional(), photoUrl: z.string().url().or(z.literal("")).optional(), displayOrder: z.number().int().min(0), published: z.boolean() })).mutation(async ({ ctx, input }) => {
+      const db = await getDb(); if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE" });
+      const { id, ...values } = input;
+      const existing = await db.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
+      if (!existing[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Team profile not found." });
+      await db.update(teamMembers).set({ ...values, published: values.published ? 1 : 0 }).where(eq(teamMembers.id, id));
+      await recordAudit(ctx.user.id, "team.updated", "team_member", id);
+      return { success: true };
     }),
     logs: superAdminProcedure.query(async () => { const db = await getDb(); if (!db) return []; return db.select().from((await import("../drizzle/schema")).auditLogs).orderBy(desc((await import("../drizzle/schema")).auditLogs.createdAt)).limit(100); }),
   }),

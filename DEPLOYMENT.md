@@ -29,7 +29,7 @@ The original ambient bed is uploaded to managed WebDev storage at `/manus-storag
 
 ## Team data
 
-Only three names were present in the supplied brief: Ukaha Terkuma, Sen, and Abugh Caleb Terngu. The public Team page and admin Team manager intentionally do not invent the remaining people. Add the remaining real profiles in the Team manager once the complete list is available.
+The supplied 25-person roster is loaded into `team_members` as published records, with niche/role fields and replaceable DiceBear initials mockups. The public Team page renders all 25 profiles. Super Admins can edit names, ranks, image URLs, display order, and publication state from the Team manager.
 
 ## Verification commands
 

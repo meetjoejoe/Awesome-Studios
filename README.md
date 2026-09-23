@@ -5,6 +5,7 @@ Awesome Studios is a full-stack entertainment studio platform for an African cre
 ## Included in this build
 
 - Public home, About, Team, Contact, Talent intake, Search, and archive routes for comics, games, video, animation, music, projects, characters, universes, artwork, releases, and updates.
+- All 25 supplied Awesome Studios team profiles loaded into the CMS and public Team page with editable placeholder portraits.
 - One shared functional navigation system with desktop Explore dropdown, responsive mobile drawer, search, Studio Login, theme toggle, and ambient sound toggle.
 - Persistent dark/light theme tokens that change surfaces and contrast without changing the Manrope, Space Grotesk, and DM Mono typography.
 - Original ambient instrumental sound bed with user-initiated playback to respect browser autoplay rules.
