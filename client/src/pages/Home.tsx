@@ -1,33 +1,28 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { ArrowDownRight, ArrowUpRight, CircleArrowOutUpRight, Menu, Moon, Search, Sun, X } from "lucide-react";
+import { Link } from "wouter";
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { useTheme } from "@/contexts/ThemeContext";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const nav = [{ href: "/about", label: "About" }, { href: "/team", label: "Team" }, { href: "/search", label: "Explore" }, { href: "/join-us", label: "Join us" }];
+const moods = [
+  { label: "Comics", note: "Worlds in panels", href: "/search?type=comic", image: "https://images.unsplash.com/photo-1577083552431-6e5fd01988a5?auto=format&fit=crop&w=900&q=80" },
+  { label: "Games", note: "Play the impossible", href: "/search?type=game", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80" },
+  { label: "Film & animation", note: "Moving images, living stories", href: "/search?type=video", image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=80" },
+];
+
+function Nav() {
+  const [open, setOpen] = useState(false); const { theme, toggleTheme } = useTheme();
+  return <header className="absolute top-0 z-20 w-full"><div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-6 lg:px-10"><Link href="/" className="focus-ring display text-[18px] font-semibold tracking-[-.06em]">AWESOME<span className="text-[#b78961]">.</span></Link><nav className="hidden items-center gap-8 md:flex">{nav.map(x => <Link key={x.href} href={x.href} className="focus-ring text-[13px] text-white/65 transition hover:text-white">{x.label}</Link>)}<Link href="/admin" className="focus-ring mono text-[11px] uppercase tracking-[.16em] text-white/45 hover:text-white">Studio login</Link><button onClick={toggleTheme} aria-label="Toggle light and dark theme" className="focus-ring text-white/65 hover:text-white">{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}</button></nav><button className="focus-ring md:hidden" onClick={() => setOpen(v => !v)} aria-label="Toggle navigation">{open ? <X /> : <Menu />}</button></div>{open && <div className="mx-4 border border-white/10 bg-[#141210]/95 p-5 backdrop-blur md:hidden">{nav.map(x => <Link onClick={() => setOpen(false)} key={x.href} href={x.href} className="block border-b border-white/10 py-4 text-sm text-white/75">{x.label}</Link>)}<Link onClick={() => setOpen(false)} href="/admin" className="mono block pt-4 text-xs uppercase tracking-[.14em] text-[#b78961]">Studio login</Link></div>}</header>;
+}
+
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const { data: featured = [], isLoading } = trpc.content.list.useQuery({ limit: 3 });
+  return <div className="min-h-screen overflow-hidden bg-[#0d0c0b] text-[#f5f1eb]"><Nav /><main>
+    <section className="hero-image noise relative flex min-h-[720px] items-end"><div className="relative mx-auto w-full max-w-[1440px] px-5 pb-20 pt-36 lg:px-10 lg:pb-28"><div className="max-w-[760px] rise"><p className="mono mb-5 text-[10px] uppercase tracking-[.26em] text-[#c29268]">Lagos · Nigeria · 2024—</p><h1 className="display max-w-[760px] text-[clamp(3.8rem,9vw,8.8rem)] font-semibold leading-[.87]">Stories with<br /><span className="text-[#c29268]">a pulse.</span></h1><p className="mt-8 max-w-[490px] text-base leading-7 text-white/65">Awesome Studios is an African entertainment company building original worlds, stories and experiences across comics, games, film, animation and music.</p><div className="mt-10 flex flex-wrap gap-3"><Link href="/search" className="focus-ring inline-flex items-center gap-3 bg-[#f5f1eb] px-5 py-3 text-sm font-semibold text-[#16120f] transition hover:bg-[#c29268]">Explore the universe <ArrowUpRight size={16} /></Link><Link href="/about" className="focus-ring inline-flex items-center gap-3 border border-white/20 px-5 py-3 text-sm text-white/80 transition hover:border-white/60">Our point of view <ArrowDownRight size={16} /></Link></div></div><div className="absolute bottom-7 right-5 hidden items-center gap-3 lg:flex"><span className="mono text-[10px] uppercase tracking-[.18em] text-white/40">Scroll to enter</span><span className="h-px w-20 bg-white/25" /></div></div></section>
+    <section className="editorial-grid border-b border-white/10 bg-[#0d0c0b] px-5 py-20 lg:px-10 lg:py-28"><div className="mx-auto grid max-w-[1440px] gap-12 lg:grid-cols-[.85fr_1.15fr] lg:gap-24"><div><p className="mono text-[10px] uppercase tracking-[.24em] text-[#b78961]">01 / A living studio</p><h2 className="display mt-5 max-w-[520px] text-4xl font-medium leading-tight md:text-6xl">Make room for the extraordinary.</h2></div><div className="max-w-[620px] text-lg leading-8 text-white/60"><p>We are a multidisciplinary team from Nigeria, making space for new voices, new formats and stories that travel further than their first frame.</p><p className="mt-6 text-white/35">Our ambition is simple: to grow into a major African entertainment company while staying close to the people and ideas that started it.</p></div></div></section>
+    <section className="bg-[#15110e] px-5 py-20 lg:px-10 lg:py-28"><div className="mx-auto max-w-[1440px]"><div className="mb-12 flex items-end justify-between"><div><p className="mono text-[10px] uppercase tracking-[.24em] text-[#b78961]">02 / What we make</p><h2 className="display mt-4 text-4xl font-medium md:text-6xl">Many doors in.</h2></div><Link href="/search" className="focus-ring hidden items-center gap-2 text-sm text-white/55 hover:text-white md:flex">View all work <ArrowUpRight size={15} /></Link></div><div className="grid gap-4 md:grid-cols-3">{moods.map((m, i) => <Link key={m.label} href={m.href} className={`group relative min-h-[360px] overflow-hidden ${i === 1 ? "md:translate-y-10" : ""}`}><img src={m.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55 grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" /><div className="absolute inset-0 bg-gradient-to-t from-[#0d0c0b] via-[#0d0c0b]/10 to-transparent" /><div className="relative flex h-full flex-col justify-end p-6"><span className="mono text-[10px] uppercase tracking-[.2em] text-[#c29268]">0{i+1}</span><h3 className="display mt-3 text-3xl font-medium">{m.label}</h3><p className="mt-2 text-sm text-white/55">{m.note}</p></div></Link>)}</div></div></section>
+    <section className="border-b border-white/10 bg-[#0d0c0b] px-5 py-20 lg:px-10 lg:py-28"><div className="mx-auto max-w-[1440px]"><div className="flex items-end justify-between"><div><p className="mono text-[10px] uppercase tracking-[.24em] text-[#b78961]">03 / The shelf</p><h2 className="display mt-4 text-4xl font-medium md:text-6xl">Latest from the studio.</h2></div><Link href="/search" className="focus-ring hidden items-center gap-2 text-sm text-white/55 hover:text-white md:flex">Browse releases <ArrowUpRight size={15} /></Link></div>{isLoading ? <div className="mt-12 h-32 animate-pulse bg-white/5" /> : featured.length ? <div className="mt-12 grid gap-4 md:grid-cols-3">{featured.map(item => <Link href={`/search?slug=${item.slug}`} key={item.id} className="focus-ring border border-white/10 p-5 transition hover:border-[#8b5e3c]"><p className="mono text-[10px] uppercase tracking-[.16em] text-[#b78961]">{item.kind}</p><h3 className="display mt-12 text-2xl">{item.title}</h3><p className="mt-3 text-sm text-white/55">{item.description || "A new work in progress."}</p></Link>)}</div> : <div className="mt-12 border border-dashed border-white/15 px-6 py-14"><p className="mono text-[10px] uppercase tracking-[.2em] text-[#b78961]">The shelf is being built</p><p className="display mt-4 max-w-[580px] text-3xl leading-tight text-white/80">No public releases yet. The next chapter will appear here when it is ready.</p><Link href="/join-us" className="focus-ring mt-7 inline-flex items-center gap-2 text-sm text-[#c29268]">Bring your work to the table <ArrowUpRight size={15} /></Link></div>}</div></section>
+    <section className="art-image relative overflow-hidden px-5 py-24 lg:px-10"><div className="absolute inset-0 bg-[#24150e]/40" /><div className="relative mx-auto flex max-w-[1440px] flex-col justify-between gap-10 md:flex-row md:items-end"><div><p className="mono text-[10px] uppercase tracking-[.24em] text-white/75">04 / Open call</p><h2 className="display mt-4 max-w-[680px] text-5xl font-medium leading-[.95] md:text-7xl">Your next world<br />starts here.</h2></div><Link href="/join-us" className="focus-ring inline-flex w-fit items-center gap-3 bg-[#f5f1eb] px-5 py-3 text-sm font-semibold text-[#16120f]">Join the studio <ArrowUpRight size={16} /></Link></div></section>
+  </main><footer className="bg-[#0d0c0b] px-5 py-10 lg:px-10"><div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-8 md:flex-row md:items-end"><div><p className="display text-xl font-semibold tracking-[-.06em]">AWESOME<span className="text-[#b78961]">.</span></p><p className="mt-3 max-w-[320px] text-sm leading-6 text-white/40">An African entertainment company building from Nigeria with care, curiosity and intent.</p></div><div className="flex flex-col gap-2 text-sm text-white/45 md:items-end"><Link href="/contact" className="hover:text-white">Contact</Link><Link href="/join-us" className="hover:text-white">Talent / Join us</Link><span className="mono mt-3 text-[10px] uppercase tracking-[.16em] text-white/25">© Awesome Studios</span></div></div></footer></div>;
 }

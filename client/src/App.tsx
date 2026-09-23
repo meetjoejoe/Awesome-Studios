@@ -1,42 +1,40 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { Route, Switch } from "wouter";
 import Home from "./pages/Home";
+import Public from "./pages/Public";
+import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
+import Archive from "./pages/Archive";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
+  return <Switch>
+    <Route path="/" component={Home} />
+    <Route path="/about" component={() => <Public section="about" />} />
+    <Route path="/team" component={() => <Public section="team" />} />
+    <Route path="/contact" component={() => <Public section="contact" />} />
+    <Route path="/join-us" component={() => <Public section="talent" />} />
+    <Route path="/search" component={() => <Public section="search" />} />
+    <Route path="/comics" component={() => <Archive kind="comic" />} />
+    <Route path="/games" component={() => <Archive kind="game" />} />
+    <Route path="/videos" component={() => <Archive kind="video" />} />
+    <Route path="/animation" component={() => <Archive kind="animation" />} />
+    <Route path="/music" component={() => <Archive kind="music" />} />
+    <Route path="/latest-releases" component={() => <Archive kind="release" />} />
+    <Route path="/updates" component={() => <Archive kind="update" />} />
+    <Route path="/projects" component={() => <Archive kind="project" />} />
+    <Route path="/characters" component={() => <Archive kind="character" />} />
+    <Route path="/universes" component={() => <Archive kind="universe" />} />
+    <Route path="/artwork" component={() => <Archive kind="artwork" />} />
+    <Route path="/admin" component={Admin} />
+    <Route path="/admin/:rest*" component={Admin} />
+    <Route path="/404" component={NotFound} />
+    <Route component={NotFound} />
+  </Switch>;
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
+export default function App() {
+  return <ErrorBoundary><ThemeProvider defaultTheme="dark" switchable><TooltipProvider><Toaster /><Router /></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
-
-export default App;
